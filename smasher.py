@@ -1,49 +1,57 @@
 from functionsglad import *
-is_targetDead = False
-alvo_x = None
-alvo_y = None
-angulo_hit = None
-start = True
-meu_x = None
-meu_y = None
-meu_agi = 15 
-in_unsafezone = False
-distancia_do_alvo = None
-my_hp = None
 
-def Ataque():
-    def ChooseEnemy():
-        if getLowHp() or getCloseEnemy():
-            speak("Um inseto caminhando para o matadouro.")
-            moveToTarget()
-    def AtaqueCharge():
-            speak("VENHA AQUI!")
-            charge()
-    def ArenaCombatMovement():
+is_targetDead = False
+alvo_x = 12.5
+alvo_y = 12.5
+angulo_hit = 0
+start = True
+meu_x = 12.5
+meu_y = 12.5
+meu_agi = 15
+in_unsafezone = False
+distancia_do_alvo = 12.5
+my_hp = 12.5
+
+def VariablesScopeToGlobal():
+    global my_hp, is_targetDead, alvo_x, alvo_y, angulo_hit, start, meu_x, meu_y, meu_agi, in_unsafezone, distancia_do_alvo
+VariablesScopeToGlobal()
+def ChooseEnemy():
+    if getLowHp() or getCloseEnemy():
+        speak("Um inseto caminhando para o matadouro.")
+        moveToTarget()
+def AtaqueCharge():
+    speak("VENHA AQUI!")
+    charge()              
+def ArenaCombatMovement():
+    while getTargetHealth() > 0:
+        turnTo(alvo_x, alvo_y)        
         stepLeft()
-        turnTo(alvo_x, alvo_y)
-    def BlockEffect():
+        attackMelee()
+
+def BlockEffect():
+    if getBlockTimeLeft() <= 0:
         speak("Sobrevivência favorece o mais forte.")
         block()
 
-def MovementAlgorithm():
-    def GoToSafezone():
-            if not isSafeThere(meu_x-1, meu_y-1) or not isSafeThere(meu_x+1, meu_y+1):
-                speak("VOCÊ TÁ BRINCANDO COMIGO?")
-                turnTo(12.5, 12.5)
-                while(in_unsafezone):
-                    moveForward(2)
-                    if isSafeHere() or not isSafeThere(12.5,12.5):
-                        in_unsafezone = True
-    def ArenaIdleMovement():
-            stepLeft()
-            turnTo(12.5, 12.5)
-    def TurnToHit():
-            turnTo(angulo_hit)
-            if not getCloseEnemy:
-                stepLeft()
-                charge()
-                moveForward(9)
+def GoToSafezone():
+    if not isSafeThere(meu_x-1, meu_y-1) or not isSafeThere(meu_x+1, meu_y+1):
+        speak("VOCÊ TÁ BRINCANDO COMIGO?")
+        turnTo(12.5, 12.5)
+        while(in_unsafezone):
+            moveForward(2)
+            if isSafeHere() or not isSafeThere(12.5,12.5):
+                in_unsafezone = True
+def ArenaIdleMovement():
+    stepLeft()
+    turnTo(12.5, 12.5)
+    
+def TurnToHit():
+    angulo_hit = getLastHitAngle()
+    turnToAngle(angulo_hit)
+    if not getCloseEnemy:
+        stepLeft()
+        charge()
+        moveForward(9)
 
 def VariableUpdate():
     meu_y = getY()
@@ -53,22 +61,41 @@ def VariableUpdate():
     alvo_y = getTargetY()
     distancia_do_alvo = getDistToTarget()
     my_hp = getHp()
-
 def UpgradeStats():
-    if minha_agi <= 20:
+    if meu_agi < 20:
         upgradeAGI(5)
         minha_agi = getAGI()
-        
     else:
         upgradeSTR(5)
 
 def LowHP():
     speak("Essa é a dor... Eu esqueci da sensação...")
     charge()
-    moveTo(12.5, 12,5)
+    moveTo(12.5, 12.5)
 
 def loop():
-    global Ataque, MovementAlgorithm, VariableUpdate, UpgradeStats, LowHP, my_hp, is_targetDead, alvo_esta_morto, alvo_x, alvo_y, angulo_hit, start, meu_x, meu_y, meu_agi, in_unsafezone, distancia_do_alvo
+    VariablesScopeToGlobal()
+    global MeleeAttack, ChooseEnemy, AtaqueChargem, ArenaCombatMovement, BlockEffect, GoToSafezone, ArenaIdleMovement, TurnToHit, VariableUpdate, UpgradeStats, LowHP, MovementAlgorithm, VariableUpdate, UpgradeStats, LowHP
+    
+    VariableUpdate()
+    UpgradeStats()
+    LowHP()
+    GoToSafezone()
 
-    VariableUpdate
-    UpgradeStats
+    if getLowHp() or getCloseEnemy():
+        speak("Um inseto caminhando para o matadouro.")
+        moveToTarget()
+        if getBlockTimeLeft() <= 0:
+            BlockEffect()
+        if distancia_do_alvo >= 3:
+            AtaqueCharge()
+        elif distancia_do_alvo <= 2:
+            ArenaCombatMovement()
+        
+    
+
+    elif getHit():
+        TurnToHit()
+    
+    else:
+        ArenaIdleMovement()

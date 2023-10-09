@@ -46,3 +46,9 @@ def block():
     pass
 def moveForward(steps):
     pass
+def getBlockTimeLeft():
+    pass
+def attackMelee():
+    pass
+def getTargetHealth():
+    pass
